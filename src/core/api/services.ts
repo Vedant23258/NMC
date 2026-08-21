@@ -5,6 +5,7 @@ import type {
   Anomaly,
   AuditLogEntry,
   AuditResult,
+  BeatSegment,
   Complaint,
   DashboardSummary,
   DirectiveRecord,
@@ -23,7 +24,9 @@ import type {
   Vehicle,
   VerificationRecord,
   Ward,
+  WardDayStatus,
   WeighbridgeEntry,
+  WorkerAttendanceRecord,
 } from '@/core/types/domain';
 import { dashboardSummaryDtoSchema, userDtoSchema } from '@/core/types/dto';
 
@@ -228,6 +231,32 @@ const auditLogEntrySchema = z.object({
   detail: z.string(),
 });
 
+const beatSegmentSchema = z.object({
+  id: z.string(),
+  wardId: z.string(),
+  streetName: z.string(),
+  beatType: z.enum(['sweeping', 'collection']),
+  status: z.enum(['not_started', 'submitted', 'confirmed']),
+  assignedWorker: z.string(),
+  rejectionReason: z.string().optional(),
+});
+
+const workerAttendanceSchema = z.object({
+  id: z.string(),
+  wardId: z.string(),
+  workerName: z.string(),
+  checkedIn: z.boolean(),
+  photoSubmitted: z.boolean(),
+});
+
+const wardDayStatusSchema = z.object({
+  wardId: z.string(),
+  date: z.string(),
+  confirmed: z.boolean(),
+  confirmedAt: z.string().optional(),
+  confirmedBy: z.string().optional(),
+});
+
 const forecastPointSchema = z.object({
   wardId: z.string(),
   date: z.string(),
@@ -416,6 +445,11 @@ export const systemHealthService = {
 export const adminService = {
   users: async (token: string): Promise<PlatformUser[]> =>
     parse(z.array(platformUserSchema), await httpClient('/admin/users', { token })),
+  createUser: async (
+    token: string,
+    body: { name: string; role: string; wardScope: string[] },
+  ): Promise<PlatformUser> =>
+    parse(platformUserSchema, await httpClient('/admin/users', { method: 'POST', token, body })),
   setUserStatus: async (
     token: string,
     id: string,
@@ -434,6 +468,43 @@ export const forecastingService = {
     parse(
       z.array(forecastPointSchema),
       await httpClient(`/forecasting${toSearchParams({ wardId })}`, { token }),
+    ),
+};
+
+export const wardTodayService = {
+  segments: async (token: string, wardId?: string): Promise<BeatSegment[]> =>
+    parse(
+      z.array(beatSegmentSchema),
+      await httpClient(`/ward-today/segments${toSearchParams({ wardId })}`, { token }),
+    ),
+  attendance: async (token: string, wardId?: string): Promise<WorkerAttendanceRecord[]> =>
+    parse(
+      z.array(workerAttendanceSchema),
+      await httpClient(`/ward-today/attendance${toSearchParams({ wardId })}`, { token }),
+    ),
+  status: async (token: string, wardId: string): Promise<WardDayStatus | undefined> =>
+    parse(
+      z.array(wardDayStatusSchema),
+      await httpClient(`/ward-today/status${toSearchParams({ wardId })}`, { token }),
+    ).at(0),
+  markAbsent: async (token: string, attendanceId: string): Promise<WorkerAttendanceRecord> =>
+    parse(
+      workerAttendanceSchema,
+      await httpClient(`/ward-today/attendance/${attendanceId}/mark-absent`, { method: 'POST', token }),
+    ),
+  reassignBeat: async (token: string, segmentId: string, assignedWorker: string): Promise<BeatSegment> =>
+    parse(
+      beatSegmentSchema,
+      await httpClient(`/ward-today/segments/${segmentId}/reassign`, {
+        method: 'POST',
+        token,
+        body: { assignedWorker },
+      }),
+    ),
+  confirmDay: async (token: string, wardId: string): Promise<WardDayStatus> =>
+    parse(
+      wardDayStatusSchema,
+      await httpClient('/ward-today/confirm-day', { method: 'POST', token, body: { wardId } }),
     ),
 };
 

@@ -17,6 +17,7 @@ import { RegistryPage } from '@/features/ward-vehicle-registry/page';
 import { ReportsPage } from '@/features/reporting/page';
 import { ShiftHandoverPage } from '@/features/shift-handover/page';
 import { VerificationPage } from '@/features/verification/page';
+import { WardTodayPage } from '@/features/ward-today/page';
 import { WeighbridgePage } from '@/features/weighbridge/page';
 
 const DefaultRoute = () => {
@@ -93,6 +94,14 @@ export const AppRouter = () => (
             element={
               <CapabilityGate capability="view_notifications">
                 <NotificationsPage />
+              </CapabilityGate>
+            }
+          />
+          <Route
+            path="/ward-today"
+            element={
+              <CapabilityGate capability="view_ward_today">
+                <WardTodayPage />
               </CapabilityGate>
             }
           />

@@ -1,6 +1,7 @@
 import type {
   Anomaly,
   AuditLogEntry,
+  BeatSegment,
   Complaint,
   DashboardSummary,
   DirectiveRecord,
@@ -17,7 +18,9 @@ import type {
   Vehicle,
   VerificationRecord,
   Ward,
+  WardDayStatus,
   WeighbridgeEntry,
+  WorkerAttendanceRecord,
 } from '@/core/types/domain';
 
 export const users: Record<User['role'], User> = {
@@ -328,6 +331,27 @@ export const platformUsers: PlatformUser[] = Object.values(users).map((user) => 
 export const auditLog: AuditLogEntry[] = [
   { id: 'aud-001', entityType: 'complaint', entityId: 'cmp-1002', action: 'status_changed', actor: 'CCC Operator', role: 'ccc_operator', timestamp: '2026-08-16T08:15:00+05:30', detail: 'Crew dispatched and en route.' },
   { id: 'aud-002', entityType: 'verification_record', entityId: 'ver-002', action: 'flagged', actor: 'System (rule engine)', role: 'mis_gis_analyst', timestamp: '2026-08-16T09:12:00+05:30', detail: 'Uniform-value pattern detected; flagged for analyst review.' },
+];
+
+export const beatSegments: BeatSegment[] = [
+  { id: 'beat-001', wardId: 'ward-16', streetName: 'Allipuram Market Road', beatType: 'sweeping', status: 'confirmed', assignedWorker: 'P. Anjaneyulu' },
+  { id: 'beat-002', wardId: 'ward-16', streetName: 'Ranganayakulapeta Cross Street', beatType: 'collection', status: 'submitted', assignedWorker: 'M. Sujatha' },
+  { id: 'beat-003', wardId: 'ward-16', streetName: 'Balaji Nagar Lane 3', beatType: 'sweeping', status: 'not_started', assignedWorker: 'K. Ramesh' },
+  { id: 'beat-004', wardId: 'ward-14', streetName: 'Sivaji Market Drain Edge', beatType: 'collection', status: 'submitted', assignedWorker: 'S. Vijaya' },
+  { id: 'beat-005', wardId: 'ward-14', streetName: 'Old Bus Stand Road', beatType: 'sweeping', status: 'not_started', assignedWorker: 'D. Prasad' },
+];
+
+export const workerAttendance: WorkerAttendanceRecord[] = [
+  { id: 'att-001', wardId: 'ward-16', workerName: 'P. Anjaneyulu', checkedIn: true, photoSubmitted: true },
+  { id: 'att-002', wardId: 'ward-16', workerName: 'M. Sujatha', checkedIn: true, photoSubmitted: true },
+  { id: 'att-003', wardId: 'ward-16', workerName: 'K. Ramesh', checkedIn: false, photoSubmitted: false },
+  { id: 'att-004', wardId: 'ward-14', workerName: 'S. Vijaya', checkedIn: true, photoSubmitted: true },
+  { id: 'att-005', wardId: 'ward-14', workerName: 'D. Prasad', checkedIn: true, photoSubmitted: false },
+];
+
+export const wardDayStatuses: WardDayStatus[] = [
+  { wardId: 'ward-16', date: '2026-08-21', confirmed: false },
+  { wardId: 'ward-14', date: '2026-08-21', confirmed: false },
 ];
 
 export const forecastPoints: ForecastPoint[] = [

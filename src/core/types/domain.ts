@@ -40,6 +40,8 @@ export const capabilities = [
   'view_system_health',
   'manage_configuration',
   'view_audit_log',
+  'view_ward_today',
+  'confirm_ward_day',
 ] as const;
 
 export type Capability = (typeof capabilities)[number];
@@ -315,4 +317,30 @@ export interface ForecastPoint {
   date: string;
   predictedTonnage: number;
   actualTonnage?: number;
+}
+
+export interface BeatSegment {
+  id: string;
+  wardId: string;
+  streetName: string;
+  beatType: 'sweeping' | 'collection';
+  status: 'not_started' | 'submitted' | 'confirmed';
+  assignedWorker: string;
+  rejectionReason?: string;
+}
+
+export interface WorkerAttendanceRecord {
+  id: string;
+  wardId: string;
+  workerName: string;
+  checkedIn: boolean;
+  photoSubmitted: boolean;
+}
+
+export interface WardDayStatus {
+  wardId: string;
+  date: string;
+  confirmed: boolean;
+  confirmedAt?: string;
+  confirmedBy?: string;
 }

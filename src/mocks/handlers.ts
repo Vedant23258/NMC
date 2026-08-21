@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import {
   anomalies,
   auditLog,
+  beatSegments,
   complaints,
   directives,
   enforcementRecords,
@@ -17,8 +18,10 @@ import {
   users,
   vehicles,
   verificationRecords,
+  wardDayStatuses,
   wards,
   weighbridgeEntries,
+  workerAttendance,
 } from '@/mocks/data/db';
 
 const api = '/api';
@@ -326,6 +329,25 @@ export const handlers = [
     return HttpResponse.json(platformUsers);
   }),
 
+  http.post(`${api}/admin/users`, async ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const body = (await request.json()) as { name: string; role: string; wardScope: string[] };
+    if (!body.name || !body.role) {
+      return HttpResponse.json({ message: 'Name and role are required' }, { status: 422 });
+    }
+    const created = {
+      id: `user-${crypto.randomUUID().slice(0, 8)}`,
+      name: body.name,
+      role: body.role as keyof typeof users,
+      wardScope: body.wardScope ?? [],
+      accountStatus: 'active' as const,
+      lastLoginAt: undefined,
+    };
+    platformUsers.unshift(created);
+    return HttpResponse.json(created, { status: 201 });
+  }),
+
   http.patch(`${api}/admin/users/:id`, async ({ params, request }) => {
     const user = requireUser(request);
     if (user instanceof HttpResponse) return user;
@@ -361,6 +383,64 @@ export const handlers = [
     report.approvedAt = new Date().toISOString();
     report.approvedBy = user.name;
     return HttpResponse.json(report);
+  }),
+
+  http.get(`${api}/ward-today/segments`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const url = new URL(request.url);
+    const wardId = url.searchParams.get('wardId');
+    return HttpResponse.json(wardId ? beatSegments.filter((segment) => segment.wardId === wardId) : beatSegments);
+  }),
+
+  http.get(`${api}/ward-today/attendance`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const url = new URL(request.url);
+    const wardId = url.searchParams.get('wardId');
+    return HttpResponse.json(wardId ? workerAttendance.filter((record) => record.wardId === wardId) : workerAttendance);
+  }),
+
+  http.get(`${api}/ward-today/status`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const url = new URL(request.url);
+    const wardId = url.searchParams.get('wardId');
+    return HttpResponse.json(wardId ? wardDayStatuses.filter((status) => status.wardId === wardId) : wardDayStatuses);
+  }),
+
+  http.post(`${api}/ward-today/attendance/:id/mark-absent`, ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const record = workerAttendance.find((item) => item.id === params.id);
+    if (!record) return HttpResponse.json({ message: 'Worker not found' }, { status: 404 });
+    record.checkedIn = false;
+    return HttpResponse.json(record);
+  }),
+
+  http.post(`${api}/ward-today/segments/:id/reassign`, async ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const segment = beatSegments.find((item) => item.id === params.id);
+    if (!segment) return HttpResponse.json({ message: 'Beat segment not found' }, { status: 404 });
+    const body = (await request.json()) as { assignedWorker: string };
+    segment.assignedWorker = body.assignedWorker;
+    return HttpResponse.json(segment);
+  }),
+
+  http.post(`${api}/ward-today/confirm-day`, async ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const body = (await request.json()) as { wardId: string };
+    let status = wardDayStatuses.find((item) => item.wardId === body.wardId);
+    if (!status) {
+      status = { wardId: body.wardId, date: new Date().toISOString().slice(0, 10), confirmed: false };
+      wardDayStatuses.push(status);
+    }
+    status.confirmed = true;
+    status.confirmedAt = new Date().toISOString();
+    status.confirmedBy = user.name;
+    return HttpResponse.json(status);
   }),
 
   http.post(`${api}/reports/generate-maud-draft`, ({ request }) => {

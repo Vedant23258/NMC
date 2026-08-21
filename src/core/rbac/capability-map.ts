@@ -26,6 +26,8 @@ export const roleCapabilities: Record<Role, Capability[]> = {
     'view_enforcement',
     'view_registry',
     'view_notifications',
+    'view_ward_today',
+    'confirm_ward_day',
   ],
   additional_commissioner: [
     'view_live_dashboard',
