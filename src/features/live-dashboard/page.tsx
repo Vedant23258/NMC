@@ -12,6 +12,7 @@ import { ErrorPanel, LoadingPanel } from '@/shared/ui/state-panels';
 import { FilterBar } from '@/shared/ui/filter-bar';
 import { KpiCard } from '@/shared/ui/kpi-card';
 import { formatDateTime } from '@/shared/utils/format';
+import { WardMap } from '@/features/live-dashboard/ward-map';
 
 const buildClient = (token: string) =>
   createPollingClient(async ({ wardId }: { wardId?: string }) =>
@@ -80,6 +81,8 @@ export const DashboardPage = () => {
             <KpiCard label="Flagged verifications" value={summaryQuery.data.data.flaggedVerifications} />
             <KpiCard label="Open enforcement actions" value={summaryQuery.data.data.openEnforcementActions} />
           </div>
+
+          <WardMap />
 
           <div className="split-layout">
             <div>

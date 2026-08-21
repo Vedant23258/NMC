@@ -68,15 +68,17 @@ export const GisAnalystPage = () => {
           >
             <div className="banner">
               <span>
-                Official NMC shapefile has not yet been received. An interim hand-digitised boundary
-                set is in use so no other module is blocked.
+                Ward 16 pilot: real road-network geometry received from NMC and live on the
+                Monitoring Wall. The remaining 53 wards' official shapefile has not yet been
+                received — an interim hand-digitised boundary set is in use for those so no other
+                module is blocked.
               </span>
             </div>
             <dl className="details-list">
-              <dt>Active layer</dt>
-              <dd>Interim hand-digitised (54 wards)</dd>
-              <dt>Status</dt>
-              <dd><Badge value="pending" tone="pending" /></dd>
+              <dt>Ward 16</dt>
+              <dd><Badge value="live" tone="active" /> Real road-network geometry (79 segments)</dd>
+              <dt>Remaining 53 wards</dt>
+              <dd><Badge value="pending" tone="pending" /> Interim hand-digitised placeholder</dd>
             </dl>
           </Card>
         </div>
