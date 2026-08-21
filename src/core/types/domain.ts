@@ -7,7 +7,6 @@ export const roles = [
   'municipal_health_officer',
   'mis_gis_analyst',
   'system_administrator',
-  'maud_viewer',
 ] as const;
 
 export type Role = (typeof roles)[number];

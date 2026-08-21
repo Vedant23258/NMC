@@ -88,14 +88,6 @@ export const users: Record<User['role'], User> = {
     title: 'System Administrator',
     requiresSecondFactor: false,
   },
-  maud_viewer: {
-    id: 'user-maud-viewer-1',
-    name: 'MAUD State Office',
-    role: 'maud_viewer',
-    wardScope: ['all'],
-    title: 'MAUD / State-Level Viewer',
-    requiresSecondFactor: false,
-  },
 };
 
 export const wards: Ward[] = [

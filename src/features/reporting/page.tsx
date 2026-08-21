@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authService, maudReportService, reportingService } from '@/core/api/services';
+import { authService, dashboardService, maudReportService, reportingService } from '@/core/api/services';
 import { useAuth, useCapability } from '@/core/auth/auth-hooks';
+import type { ReportRecord } from '@/core/types/domain';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { PageHeader } from '@/shared/ui/page-header';
 import { ErrorPanel } from '@/shared/ui/state-panels';
+import { exportReportToExcel } from '@/shared/utils/export-excel';
 import { formatDateTime } from '@/shared/utils/format';
 
 export const ReportsPage = () => {
@@ -18,6 +20,8 @@ export const ReportsPage = () => {
   const [code, setCode] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [auditMessage, setAuditMessage] = useState('');
+  const [exportingId, setExportingId] = useState<string>();
+  const [exportError, setExportError] = useState<string>();
 
   const reportsQuery = useQuery({
     queryKey: ['reports'],
@@ -28,6 +32,19 @@ export const ReportsPage = () => {
     mutationFn: (reportId: string) => maudReportService.approve(token!, reportId),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['reports'] }),
   });
+
+  const handleExport = async (report: ReportRecord) => {
+    setExportError(undefined);
+    setExportingId(report.id);
+    try {
+      const summary = await dashboardService.getSummary(token!);
+      exportReportToExcel(report, summary.wardOverview);
+    } catch {
+      setExportError(`Could not export ${report.name}. Try again.`);
+    } finally {
+      setExportingId(undefined);
+    }
+  };
 
   const signOffMutation = useMutation({
     mutationFn: async () => {
@@ -102,12 +119,23 @@ export const ReportsPage = () => {
                 Commissioner sign-off
               </Button>
             ) : null}
+
+            {report.status !== 'pending_backend' ? (
+              <Button
+                variant="secondary"
+                onClick={() => void handleExport(report)}
+                disabled={exportingId === report.id}
+              >
+                {exportingId === report.id ? 'Preparing...' : 'Download Excel (.xlsx)'}
+              </Button>
+            ) : null}
           </Card>
         ))}
       </div>
 
       {auditMessage ? <div className="banner"><span>{auditMessage}</span></div> : null}
       {approveMutation.isError ? <ErrorPanel error={approveMutation.error} /> : null}
+      {exportError ? <div className="banner banner-error" role="alert"><span>{exportError}</span></div> : null}
 
       {dialogOpen ? (
         <div className="dialog-backdrop" role="presentation">

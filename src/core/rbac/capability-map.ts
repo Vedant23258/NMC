@@ -79,7 +79,6 @@ export const roleCapabilities: Record<Role, Capability[]> = {
     'manage_configuration',
     'view_audit_log',
   ],
-  maud_viewer: ['view_reports'],
 };
 
 export const hasCapability = (role: Role | undefined, capability: Capability) =>
