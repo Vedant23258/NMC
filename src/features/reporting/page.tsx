@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authService, reportingService } from '@/core/api/services';
+import { authService, maudReportService, reportingService } from '@/core/api/services';
 import { useAuth, useCapability } from '@/core/auth/auth-hooks';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -12,6 +12,7 @@ import { formatDateTime } from '@/shared/utils/format';
 export const ReportsPage = () => {
   const { token, currentUser } = useAuth();
   const canSignOff = useCapability('sign_off_reports');
+  const canApprove = useCapability('approve_maud');
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string>();
   const [code, setCode] = useState('');
@@ -21,6 +22,11 @@ export const ReportsPage = () => {
   const reportsQuery = useQuery({
     queryKey: ['reports'],
     queryFn: () => reportingService.list(token!),
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: (reportId: string) => maudReportService.approve(token!, reportId),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['reports'] }),
   });
 
   const signOffMutation = useMutation({
@@ -58,10 +64,22 @@ export const ReportsPage = () => {
             <p className="muted">
               Sign-off required: {report.signOffRequired ? 'Yes' : 'No'}
             </p>
+            {report.approvedAt ? (
+              <p className="muted">Approved by {report.approvedBy} on {formatDateTime(report.approvedAt)}</p>
+            ) : null}
             {report.status === 'pending_backend' ? (
               <div className="banner">
                 <span>MAUD auto-fill integration is not yet wired.</span>
               </div>
+            ) : null}
+            {canApprove && report.name === 'MAUD Monthly Rollup' && !report.approvedAt ? (
+              <Button
+                variant="secondary"
+                onClick={() => approveMutation.mutate(report.id)}
+                disabled={approveMutation.isPending}
+              >
+                Approve &amp; Forward to Commissioner
+              </Button>
             ) : null}
             {canSignOff && report.signOffRequired ? (
               <Button
@@ -78,6 +96,7 @@ export const ReportsPage = () => {
       </div>
 
       {auditMessage ? <div className="banner"><span>{auditMessage}</span></div> : null}
+      {approveMutation.isError ? <ErrorPanel error={approveMutation.error} /> : null}
 
       {dialogOpen ? (
         <div className="dialog-backdrop" role="presentation">

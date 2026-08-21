@@ -328,7 +328,10 @@ textarea {
 .badge-active,
 .badge-ready,
 .badge-verified,
-.badge-delivered {
+.badge-delivered,
+.badge-low,
+.badge-green,
+.badge-compliant {
   background: #e6f3ee;
   color: var(--success);
 }
@@ -336,7 +339,17 @@ textarea {
 .badge-pending,
 .badge-refreshing,
 .badge-draft,
-.badge-development_only {
+.badge-development_only,
+.badge-medium,
+.badge-amber,
+.badge-in_remediation,
+.badge-in_progress,
+.badge-open,
+.badge-new,
+.badge-assigned,
+.badge-awaiting_closure,
+.badge-checked_in,
+.badge-processing {
   background: #fff3e0;
   color: var(--warning);
 }
@@ -346,7 +359,13 @@ textarea {
 .badge-flagged,
 .badge-blocked,
 .badge-closed,
-.badge-unavailable {
+.badge-unavailable,
+.badge-red,
+.badge-data_conflict,
+.badge-non_compliant,
+.badge-manual_review,
+.badge-stale,
+.badge-deactivated {
   background: #fdeaea;
   color: var(--danger);
 }

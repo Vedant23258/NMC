@@ -1,11 +1,19 @@
 import { http, HttpResponse } from 'msw';
 import {
   anomalies,
+  auditLog,
   complaints,
+  directives,
   enforcementRecords,
+  forecastPoints,
   getDashboardSummary,
+  healthRiskZones,
+  ngtComplianceItems,
   notifications,
+  platformUsers,
   reports,
+  shiftHandovers,
+  systemHealthChecks,
   users,
   vehicles,
   verificationRecords,
@@ -155,18 +163,18 @@ export const handlers = [
     return HttpResponse.json(paginate(filterCommon(verificationRecords, url), url));
   }),
 
+  http.get(`${api}/verification/anomalies`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(anomalies);
+  }),
+
   http.get(`${api}/verification/:id`, ({ params, request }) => {
     const user = requireUser(request);
     if (user instanceof HttpResponse) return user;
     const item = verificationRecords.find((record) => record.id === params.id);
     if (!item) return HttpResponse.json({ message: 'Verification record not found' }, { status: 404 });
     return HttpResponse.json(item);
-  }),
-
-  http.get(`${api}/verification/anomalies`, ({ request }) => {
-    const user = requireUser(request);
-    if (user instanceof HttpResponse) return user;
-    return HttpResponse.json(anomalies);
   }),
 
   http.get(`${api}/registry/wards`, ({ request }) => {
@@ -227,5 +235,150 @@ export const handlers = [
     const user = requireUser(request);
     if (user instanceof HttpResponse) return user;
     return HttpResponse.json(notifications);
+  }),
+
+  http.get(`${api}/directives`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(directives);
+  }),
+
+  http.post(`${api}/directives`, async ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const body = (await request.json()) as Record<string, unknown>;
+    const directive = {
+      id: `dir-${crypto.randomUUID().slice(0, 8)}`,
+      wardId: String(body.wardId ?? ''),
+      issuedTo: String(body.issuedTo ?? ''),
+      issuedBy: user.name,
+      instruction: String(body.instruction ?? ''),
+      status: 'open' as const,
+      dueAt: String(body.dueAt ?? new Date().toISOString()),
+      createdAt: new Date().toISOString(),
+      relatedComplaintId: body.relatedComplaintId ? String(body.relatedComplaintId) : undefined,
+    };
+    directives.unshift(directive);
+    return HttpResponse.json(directive, { status: 201 });
+  }),
+
+  http.get(`${api}/health-risk`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(healthRiskZones);
+  }),
+
+  http.post(`${api}/health-risk/flag`, async ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const body = (await request.json()) as { wardId: string };
+    const zone = healthRiskZones.find((item) => item.wardId === body.wardId);
+    if (!zone) return HttpResponse.json({ message: 'Ward not found in health-risk register' }, { status: 404 });
+    zone.riskLevel = 'high';
+    zone.flaggedAt = new Date().toISOString();
+    zone.flaggedBy = user.name;
+    return HttpResponse.json(zone);
+  }),
+
+  http.get(`${api}/ngt-compliance`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(ngtComplianceItems);
+  }),
+
+  http.post(`${api}/ngt-compliance/:id/co-sign`, ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const item = ngtComplianceItems.find((record) => record.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Compliance item not found' }, { status: 404 });
+    if (user.role === 'municipal_health_officer') item.coSignedByMho = true;
+    if (user.role === 'additional_commissioner') item.coSignedByAddlCommissioner = true;
+    item.updatedAt = new Date().toISOString();
+    return HttpResponse.json(item);
+  }),
+
+  http.get(`${api}/shift-handover`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(shiftHandovers);
+  }),
+
+  http.post(`${api}/shift-handover/:id/complete`, async ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const item = shiftHandovers.find((record) => record.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Shift handover not found' }, { status: 404 });
+    const body = (await request.json()) as { note?: string };
+    if (body.note) item.note = body.note;
+    item.completedAt = new Date().toISOString();
+    return HttpResponse.json(item);
+  }),
+
+  http.get(`${api}/system-health`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(systemHealthChecks);
+  }),
+
+  http.get(`${api}/admin/users`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(platformUsers);
+  }),
+
+  http.patch(`${api}/admin/users/:id`, async ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const item = platformUsers.find((record) => record.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'User not found' }, { status: 404 });
+    const body = (await request.json()) as Partial<typeof item>;
+    Object.assign(item, body);
+    return HttpResponse.json(item);
+  }),
+
+  http.get(`${api}/admin/audit-log`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    return HttpResponse.json(auditLog);
+  }),
+
+  http.get(`${api}/forecasting`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    const url = new URL(request.url);
+    const wardId = url.searchParams.get('wardId');
+    return HttpResponse.json(wardId ? forecastPoints.filter((point) => point.wardId === wardId) : forecastPoints);
+  }),
+
+  http.post(`${api}/reports/:id/approve`, ({ params, request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    if (user.role !== 'additional_commissioner') {
+      return HttpResponse.json({ message: 'Forbidden', code: 'forbidden' }, { status: 403 });
+    }
+    const report = reports.find((item) => item.id === params.id);
+    if (!report) return HttpResponse.json({ message: 'Report not found' }, { status: 404 });
+    report.approvedAt = new Date().toISOString();
+    report.approvedBy = user.name;
+    return HttpResponse.json(report);
+  }),
+
+  http.post(`${api}/reports/generate-maud-draft`, ({ request }) => {
+    const user = requireUser(request);
+    if (user instanceof HttpResponse) return user;
+    if (user.role !== 'mis_gis_analyst') {
+      return HttpResponse.json({ message: 'Forbidden', code: 'forbidden' }, { status: 403 });
+    }
+    const draft = {
+      id: `rep-${crypto.randomUUID().slice(0, 8)}`,
+      name: 'MAUD Monthly Rollup',
+      periodLabel: new Intl.DateTimeFormat('en-IN', { month: 'short', year: 'numeric' }).format(new Date()),
+      status: 'draft' as const,
+      generatedAt: new Date().toISOString(),
+      generatedBy: user.name,
+      signOffRequired: true,
+    };
+    reports.unshift(draft);
+    return HttpResponse.json(draft, { status: 201 });
   }),
 ];

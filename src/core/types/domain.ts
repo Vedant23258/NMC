@@ -1,4 +1,14 @@
-export const roles = ['ccc_operator', 'sanitary_inspector', 'commissioner'] as const;
+export const roles = [
+  'ccc_operator',
+  'ccc_shift_supervisor',
+  'sanitary_inspector',
+  'additional_commissioner',
+  'commissioner',
+  'municipal_health_officer',
+  'mis_gis_analyst',
+  'system_administrator',
+  'maud_viewer',
+] as const;
 
 export type Role = (typeof roles)[number];
 
@@ -15,6 +25,21 @@ export const capabilities = [
   'view_reports',
   'sign_off_reports',
   'view_notifications',
+  'manage_shift_handover',
+  'view_ccc_summary',
+  'view_grievance_ageing',
+  'issue_directive',
+  'approve_maud',
+  'view_health_risk',
+  'flag_health_risk',
+  'manage_ngt_compliance',
+  'manage_gis_layers',
+  'view_forecasting',
+  'build_maud_report',
+  'manage_users',
+  'view_system_health',
+  'manage_configuration',
+  'view_audit_log',
 ] as const;
 
 export type Capability = (typeof capabilities)[number];
@@ -144,6 +169,8 @@ export interface ReportRecord {
   generatedBy?: string;
   signOffRequired: boolean;
   signedOffAt?: string;
+  approvedAt?: string;
+  approvedBy?: string;
 }
 
 export interface NotificationRecord {
@@ -207,4 +234,85 @@ export interface ListQuery {
   status?: string;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
+}
+
+export interface DirectiveRecord {
+  id: string;
+  wardId: string;
+  issuedTo: string;
+  issuedBy: string;
+  instruction: string;
+  status: 'open' | 'in_progress' | 'closed';
+  dueAt: string;
+  createdAt: string;
+  relatedComplaintId?: string;
+}
+
+export interface HealthRiskZone {
+  id: string;
+  wardId: string;
+  riskLevel: Priority;
+  healthComplaintCount7d: number;
+  category: 'stagnant_water' | 'sewage_overflow' | 'dead_animal' | 'disease_linked';
+  flaggedAt?: string;
+  flaggedBy?: string;
+}
+
+export interface NgtComplianceItem {
+  id: string;
+  siteName: string;
+  wardId: string;
+  category: 'legacy_waste' | 'liquid_waste';
+  status: 'compliant' | 'in_remediation' | 'data_conflict' | 'non_compliant';
+  note: string;
+  coSignedByAddlCommissioner: boolean;
+  coSignedByMho: boolean;
+  updatedAt: string;
+}
+
+export interface ShiftHandoverNote {
+  id: string;
+  shiftLabel: string;
+  outgoingSupervisor: string;
+  grievancesOpened: number;
+  grievancesClosed: number;
+  stillOpenHighPriority: number;
+  unacknowledgedAssignments: number;
+  note: string;
+  completedAt?: string;
+}
+
+export interface SystemHealthCheck {
+  id: string;
+  name: string;
+  status: 'green' | 'amber' | 'red';
+  detail: string;
+  lastCheckedAt: string;
+}
+
+export interface PlatformUser {
+  id: string;
+  name: string;
+  role: Role;
+  wardScope: string[];
+  accountStatus: 'active' | 'deactivated';
+  lastLoginAt?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  entityType: string;
+  entityId: string;
+  action: string;
+  actor: string;
+  role: Role;
+  timestamp: string;
+  detail: string;
+}
+
+export interface ForecastPoint {
+  wardId: string;
+  date: string;
+  predictedTonnage: number;
+  actualTonnage?: number;
 }

@@ -1,10 +1,18 @@
 import type {
   Anomaly,
+  AuditLogEntry,
   Complaint,
   DashboardSummary,
+  DirectiveRecord,
   EnforcementRecord,
+  ForecastPoint,
+  HealthRiskZone,
+  NgtComplianceItem,
   NotificationRecord,
+  PlatformUser,
   ReportRecord,
+  ShiftHandoverNote,
+  SystemHealthCheck,
   User,
   Vehicle,
   VerificationRecord,
@@ -36,6 +44,54 @@ export const users: Record<User['role'], User> = {
     wardScope: ['all'],
     title: 'Municipal Commissioner',
     requiresSecondFactor: true,
+  },
+  ccc_shift_supervisor: {
+    id: 'user-shift-supervisor-1',
+    name: 'K. Bhavani',
+    role: 'ccc_shift_supervisor',
+    wardScope: ['all'],
+    title: 'CCC Shift Supervisor',
+    requiresSecondFactor: false,
+  },
+  additional_commissioner: {
+    id: 'user-addl-commissioner-1',
+    name: 'Smt. Katta Himabindu',
+    role: 'additional_commissioner',
+    wardScope: ['all'],
+    title: 'Additional Commissioner (NMC)',
+    requiresSecondFactor: false,
+  },
+  municipal_health_officer: {
+    id: 'user-mho-1',
+    name: 'Dr. Suresh Babu',
+    role: 'municipal_health_officer',
+    wardScope: ['all'],
+    title: 'Municipal Health Officer',
+    requiresSecondFactor: false,
+  },
+  mis_gis_analyst: {
+    id: 'user-mis-analyst-1',
+    name: 'N. Ravi Teja',
+    role: 'mis_gis_analyst',
+    wardScope: ['all'],
+    title: 'MIS / GIS Data Analyst',
+    requiresSecondFactor: false,
+  },
+  system_administrator: {
+    id: 'user-sysadmin-1',
+    name: 'V. Chandra Sekhar',
+    role: 'system_administrator',
+    wardScope: ['all'],
+    title: 'System Administrator',
+    requiresSecondFactor: false,
+  },
+  maud_viewer: {
+    id: 'user-maud-viewer-1',
+    name: 'MAUD State Office',
+    role: 'maud_viewer',
+    wardScope: ['all'],
+    title: 'MAUD / State-Level Viewer',
+    requiresSecondFactor: false,
   },
 };
 
@@ -170,3 +226,114 @@ export const getDashboardSummary = (): DashboardSummary => ({
     { id: 'ra-3', timestamp: '2026-08-16T08:02:00+05:30', title: 'Complaint routed', description: 'Overflow complaint near Market Road assigned to South Zone dispatch.' },
   ],
 });
+
+export const directives: DirectiveRecord[] = [
+  {
+    id: 'dir-001',
+    wardId: 'ward-14',
+    issuedTo: 'SI Lakshmi Devi',
+    issuedBy: 'Smt. Katta Himabindu',
+    instruction: 'Close out the market-cluster illegal dumping enforcement action and confirm vendor cluster compliance by Friday.',
+    status: 'open',
+    dueAt: '2026-08-21T18:00:00+05:30',
+    createdAt: '2026-08-17T10:00:00+05:30',
+    relatedComplaintId: 'cmp-1003',
+  },
+  {
+    id: 'dir-002',
+    wardId: 'ward-08',
+    issuedTo: 'Ward 08 Sanitary Inspector',
+    issuedBy: 'Smt. Katta Himabindu',
+    instruction: 'Provide a beat-coverage update for the pending morning collection route ahead of next Monday review.',
+    status: 'in_progress',
+    dueAt: '2026-08-24T12:00:00+05:30',
+    createdAt: '2026-08-17T10:05:00+05:30',
+  },
+];
+
+export const healthRiskZones: HealthRiskZone[] = [
+  {
+    id: 'hrz-001',
+    wardId: 'ward-14',
+    riskLevel: 'high',
+    healthComplaintCount7d: 6,
+    category: 'sewage_overflow',
+    flaggedAt: '2026-08-16T11:00:00+05:30',
+    flaggedBy: 'Dr. Suresh Babu',
+  },
+  {
+    id: 'hrz-002',
+    wardId: 'ward-08',
+    riskLevel: 'medium',
+    healthComplaintCount7d: 3,
+    category: 'stagnant_water',
+  },
+];
+
+export const ngtComplianceItems: NgtComplianceItem[] = [
+  {
+    id: 'ngt-001',
+    siteName: 'Allipuram Legacy Dumpsite Remediation',
+    wardId: 'ward-16',
+    category: 'legacy_waste',
+    status: 'data_conflict',
+    note: "Contractor's legacy-waste note reports a different remediated tonnage than the NGT return for the same period; flagged for reconciliation before co-signing.",
+    coSignedByAddlCommissioner: false,
+    coSignedByMho: false,
+    updatedAt: '2026-08-15T09:00:00+05:30',
+  },
+  {
+    id: 'ngt-002',
+    siteName: 'Ward 12 Liquid Waste Treatment Indicator',
+    wardId: 'ward-12',
+    category: 'liquid_waste',
+    status: 'compliant',
+    note: 'Treatment indicators within NGT-specified range for the reporting period.',
+    coSignedByAddlCommissioner: true,
+    coSignedByMho: true,
+    updatedAt: '2026-08-10T09:00:00+05:30',
+  },
+];
+
+export const shiftHandovers: ShiftHandoverNote[] = [
+  {
+    id: 'sh-001',
+    shiftLabel: 'Morning Shift · 06:00-14:00',
+    outgoingSupervisor: 'K. Bhavani',
+    grievancesOpened: 9,
+    grievancesClosed: 5,
+    stillOpenHighPriority: 1,
+    unacknowledgedAssignments: 0,
+    note: 'Ward 14 vendor-cluster dumping escalated to enforcement; incoming shift to monitor challan closure.',
+    completedAt: '2026-08-16T14:05:00+05:30',
+  },
+];
+
+export const systemHealthChecks: SystemHealthCheck[] = [
+  { id: 'sys-001', name: 'WhatsApp Business API webhook', status: 'red', detail: 'Pending Meta Business verification approval.', lastCheckedAt: '2026-08-16T09:00:00+05:30' },
+  { id: 'sys-002', name: 'GPS fleet feed (gpsindia.live / Wialon)', status: 'amber', detail: 'Pending contractor data-feed access negotiation; read-only report-template login in use.', lastCheckedAt: '2026-08-16T09:00:00+05:30' },
+  { id: 'sys-003', name: 'Weighbridge logging module', status: 'green', detail: 'Live manual-entry form at Allipuram; scan-triggered capture pending hardware.', lastCheckedAt: '2026-08-16T09:00:00+05:30' },
+  { id: 'sys-004', name: 'PostGIS ward shapefile layer', status: 'amber', detail: 'Interim hand-digitised boundary set in use pending official NMC shapefile.', lastCheckedAt: '2026-08-16T09:00:00+05:30' },
+];
+
+export const platformUsers: PlatformUser[] = Object.values(users).map((user) => ({
+  id: user.id,
+  name: user.name,
+  role: user.role,
+  wardScope: user.wardScope,
+  accountStatus: 'active',
+  lastLoginAt: '2026-08-16T09:00:00+05:30',
+}));
+
+export const auditLog: AuditLogEntry[] = [
+  { id: 'aud-001', entityType: 'complaint', entityId: 'cmp-1002', action: 'status_changed', actor: 'CCC Operator', role: 'ccc_operator', timestamp: '2026-08-16T08:15:00+05:30', detail: 'Crew dispatched and en route.' },
+  { id: 'aud-002', entityType: 'verification_record', entityId: 'ver-002', action: 'flagged', actor: 'System (rule engine)', role: 'mis_gis_analyst', timestamp: '2026-08-16T09:12:00+05:30', detail: 'Uniform-value pattern detected; flagged for analyst review.' },
+];
+
+export const forecastPoints: ForecastPoint[] = [
+  { wardId: 'ward-16', date: '2026-08-17', predictedTonnage: 8.0, actualTonnage: 7.8 },
+  { wardId: 'ward-16', date: '2026-08-18', predictedTonnage: 8.2 },
+  { wardId: 'ward-16', date: '2026-08-19', predictedTonnage: 8.1 },
+  { wardId: 'ward-12', date: '2026-08-17', predictedTonnage: 4.5, actualTonnage: 4.6 },
+  { wardId: 'ward-12', date: '2026-08-18', predictedTonnage: 4.4 },
+];

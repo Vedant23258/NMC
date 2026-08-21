@@ -3,7 +3,17 @@ import { z } from 'zod';
 export const userDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
-  role: z.enum(['ccc_operator', 'sanitary_inspector', 'commissioner']),
+  role: z.enum([
+    'ccc_operator',
+    'ccc_shift_supervisor',
+    'sanitary_inspector',
+    'additional_commissioner',
+    'commissioner',
+    'municipal_health_officer',
+    'mis_gis_analyst',
+    'system_administrator',
+    'maud_viewer',
+  ]),
   wardScope: z.array(z.string()),
   title: z.string(),
   requiresSecondFactor: z.boolean(),

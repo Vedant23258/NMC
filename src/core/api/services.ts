@@ -1,15 +1,24 @@
 import { z } from 'zod';
 import { httpClient } from '@/core/api/http-client';
+import { roles } from '@/core/types/domain';
 import type {
   Anomaly,
+  AuditLogEntry,
   AuditResult,
   Complaint,
   DashboardSummary,
+  DirectiveRecord,
   EnforcementRecord,
+  ForecastPoint,
+  HealthRiskZone,
   ListQuery,
+  NgtComplianceItem,
   NotificationRecord,
   PagedResult,
+  PlatformUser,
   ReportRecord,
+  ShiftHandoverNote,
+  SystemHealthCheck,
   User,
   Vehicle,
   VerificationRecord,
@@ -141,6 +150,89 @@ const reportSchema = z.object({
   generatedBy: z.string().optional(),
   signOffRequired: z.boolean(),
   signedOffAt: z.string().optional(),
+  approvedAt: z.string().optional(),
+  approvedBy: z.string().optional(),
+});
+
+const directiveSchema = z.object({
+  id: z.string(),
+  wardId: z.string(),
+  issuedTo: z.string(),
+  issuedBy: z.string(),
+  instruction: z.string(),
+  status: z.enum(['open', 'in_progress', 'closed']),
+  dueAt: z.string(),
+  createdAt: z.string(),
+  relatedComplaintId: z.string().optional(),
+});
+
+const healthRiskZoneSchema = z.object({
+  id: z.string(),
+  wardId: z.string(),
+  riskLevel: z.enum(['critical', 'high', 'medium', 'low']),
+  healthComplaintCount7d: z.number(),
+  category: z.enum(['stagnant_water', 'sewage_overflow', 'dead_animal', 'disease_linked']),
+  flaggedAt: z.string().optional(),
+  flaggedBy: z.string().optional(),
+});
+
+const ngtComplianceSchema = z.object({
+  id: z.string(),
+  siteName: z.string(),
+  wardId: z.string(),
+  category: z.enum(['legacy_waste', 'liquid_waste']),
+  status: z.enum(['compliant', 'in_remediation', 'data_conflict', 'non_compliant']),
+  note: z.string(),
+  coSignedByAddlCommissioner: z.boolean(),
+  coSignedByMho: z.boolean(),
+  updatedAt: z.string(),
+});
+
+const shiftHandoverSchema = z.object({
+  id: z.string(),
+  shiftLabel: z.string(),
+  outgoingSupervisor: z.string(),
+  grievancesOpened: z.number(),
+  grievancesClosed: z.number(),
+  stillOpenHighPriority: z.number(),
+  unacknowledgedAssignments: z.number(),
+  note: z.string(),
+  completedAt: z.string().optional(),
+});
+
+const systemHealthSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.enum(['green', 'amber', 'red']),
+  detail: z.string(),
+  lastCheckedAt: z.string(),
+});
+
+const platformUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  role: z.enum(roles),
+  wardScope: z.array(z.string()),
+  accountStatus: z.enum(['active', 'deactivated']),
+  lastLoginAt: z.string().optional(),
+});
+
+const auditLogEntrySchema = z.object({
+  id: z.string(),
+  entityType: z.string(),
+  entityId: z.string(),
+  action: z.string(),
+  actor: z.string(),
+  role: z.enum(roles),
+  timestamp: z.string(),
+  detail: z.string(),
+});
+
+const forecastPointSchema = z.object({
+  wardId: z.string(),
+  date: z.string(),
+  predictedTonnage: z.number(),
+  actualTonnage: z.number().optional(),
 });
 
 const notificationSchema = z.object({
@@ -277,4 +369,77 @@ export const reportingService = {
 export const notificationsService = {
   list: async (token: string): Promise<NotificationRecord[]> =>
     parse(z.array(notificationSchema), await httpClient('/notifications', { token })),
+};
+
+export const directivesService = {
+  list: async (token: string): Promise<DirectiveRecord[]> =>
+    parse(z.array(directiveSchema), await httpClient('/directives', { token })),
+  create: async (token: string, body: Record<string, unknown>): Promise<DirectiveRecord> =>
+    parse(directiveSchema, await httpClient('/directives', { method: 'POST', token, body })),
+};
+
+export const healthRiskService = {
+  list: async (token: string): Promise<HealthRiskZone[]> =>
+    parse(z.array(healthRiskZoneSchema), await httpClient('/health-risk', { token })),
+  flagWard: async (token: string, wardId: string): Promise<HealthRiskZone> =>
+    parse(
+      healthRiskZoneSchema,
+      await httpClient('/health-risk/flag', { method: 'POST', token, body: { wardId } }),
+    ),
+};
+
+export const ngtComplianceService = {
+  list: async (token: string): Promise<NgtComplianceItem[]> =>
+    parse(z.array(ngtComplianceSchema), await httpClient('/ngt-compliance', { token })),
+  coSign: async (token: string, id: string): Promise<NgtComplianceItem> =>
+    parse(
+      ngtComplianceSchema,
+      await httpClient(`/ngt-compliance/${id}/co-sign`, { method: 'POST', token }),
+    ),
+};
+
+export const shiftHandoverService = {
+  list: async (token: string): Promise<ShiftHandoverNote[]> =>
+    parse(z.array(shiftHandoverSchema), await httpClient('/shift-handover', { token })),
+  complete: async (token: string, id: string, note: string): Promise<ShiftHandoverNote> =>
+    parse(
+      shiftHandoverSchema,
+      await httpClient(`/shift-handover/${id}/complete`, { method: 'POST', token, body: { note } }),
+    ),
+};
+
+export const systemHealthService = {
+  list: async (token: string): Promise<SystemHealthCheck[]> =>
+    parse(z.array(systemHealthSchema), await httpClient('/system-health', { token })),
+};
+
+export const adminService = {
+  users: async (token: string): Promise<PlatformUser[]> =>
+    parse(z.array(platformUserSchema), await httpClient('/admin/users', { token })),
+  setUserStatus: async (
+    token: string,
+    id: string,
+    accountStatus: PlatformUser['accountStatus'],
+  ): Promise<PlatformUser> =>
+    parse(
+      platformUserSchema,
+      await httpClient(`/admin/users/${id}`, { method: 'PATCH', token, body: { accountStatus } }),
+    ),
+  auditLog: async (token: string): Promise<AuditLogEntry[]> =>
+    parse(z.array(auditLogEntrySchema), await httpClient('/admin/audit-log', { token })),
+};
+
+export const forecastingService = {
+  list: async (token: string, wardId?: string): Promise<ForecastPoint[]> =>
+    parse(
+      z.array(forecastPointSchema),
+      await httpClient(`/forecasting${toSearchParams({ wardId })}`, { token }),
+    ),
+};
+
+export const maudReportService = {
+  approve: async (token: string, reportId: string): Promise<ReportRecord> =>
+    parse(reportSchema, await httpClient(`/reports/${reportId}/approve`, { method: 'POST', token })),
+  generateDraft: async (token: string): Promise<ReportRecord> =>
+    parse(reportSchema, await httpClient('/reports/generate-maud-draft', { method: 'POST', token })),
 };
