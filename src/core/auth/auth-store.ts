@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ApiError } from '@/core/api/errors';
 import { authService } from '@/core/api/services';
+import { appEnv } from '@/core/config/env';
 import type { Role, User } from '@/core/types/domain';
 
 interface AuthState {
@@ -8,7 +9,8 @@ interface AuthState {
   currentUser: User | null;
   status: 'anonymous' | 'authenticating' | 'authenticated';
   lastError?: string;
-  login: (role: Role) => Promise<void>;
+  loginWithRole: (role: Role) => Promise<void>;
+  loginWithPassword: (email: string, password: string) => Promise<void>;
   restore: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
@@ -21,24 +23,39 @@ const persistSession = (token: string | null) => {
   else localStorage.setItem(storageKey, token);
 };
 
+const login = async (
+  set: (partial: Partial<AuthState>) => void,
+  credentials: Parameters<typeof authService.login>[0],
+) => {
+  set({ status: 'authenticating', lastError: undefined });
+  try {
+    const response = await authService.login(credentials);
+    persistSession(response.token);
+    set({ token: response.token, currentUser: response.user, status: 'authenticated' });
+  } catch (error) {
+    set({
+      status: 'anonymous',
+      lastError: error instanceof ApiError || error instanceof Error ? error.message : 'Unable to sign in.',
+    });
+  }
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   currentUser: null,
   status: 'anonymous',
-  async login(role) {
-    set({ status: 'authenticating', lastError: undefined });
-    try {
-      const response = await authService.login(role);
-      persistSession(response.token);
-      set({ token: response.token, currentUser: response.user, status: 'authenticated' });
-    } catch (error) {
-      set({
-        status: 'anonymous',
-        lastError: error instanceof ApiError ? error.message : 'Unable to sign in.',
-      });
-    }
-  },
+  loginWithRole: (role) => login(set, { role }),
+  loginWithPassword: (email, password) => login(set, { email, password }),
   async restore() {
+    // Gateway mode: Supabase owns the session (its own storage), so ask it
+    // directly rather than replaying our own token through authService.me.
+    if (appEnv.apiMode === 'gateway') {
+      const session = await authService.restoreSession();
+      if (session) {
+        set({ token: session.token, currentUser: session.user, status: 'authenticated' });
+      }
+      return;
+    }
     const storedToken = localStorage.getItem(storageKey);
     if (!storedToken) return;
     try {
