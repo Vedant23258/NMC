@@ -53,7 +53,7 @@ export const VerificationPage = () => {
     <>
       <PageHeader
         title="Verification and Anomalies"
-        description="Review reported versus verified figures and surface backend-provided anomaly flags."
+        description="Every metric here is field-submitted twice: once as a self-reported number (Reported) and once cross-checked against a harder-to-fake source like the weighbridge or GPS trail (Verified). A metric name like 'Secondary transfer count' is how many times waste was moved from a collection point to a larger vehicle for onward transport; 'Morning route completion' is how many stops on a collection vehicle's route were actually completed. Large gaps between Reported and Verified are what get flagged below."
       />
       <FilterBar>
         <label>

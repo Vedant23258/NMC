@@ -190,8 +190,9 @@ export const anomalies: Anomaly[] = [
 ];
 
 export const enforcementRecords: EnforcementRecord[] = [
-  { id: 'enf-001', wardId: 'ward-14', vehicleId: 'veh-04', type: 'challan', status: 'in_review', createdAt: '2026-08-15T17:05:00+05:30', updatedAt: '2026-08-16T08:45:00+05:30', subject: 'Improper waste dumping by vendor cluster', officer: 'SI Lakshmi Devi' },
-  { id: 'enf-002', wardId: 'ward-16', type: 'sup_seizure', status: 'initiated', createdAt: '2026-08-16T07:30:00+05:30', updatedAt: '2026-08-16T08:00:00+05:30', subject: 'Unauthorized bulk waste transfer', officer: 'EO P. Venkatesh' },
+  { id: 'enf-001', wardId: 'ward-14', vehicleId: 'veh-04', type: 'challan', status: 'in_review', createdAt: '2026-08-15T17:05:00+05:30', updatedAt: '2026-08-16T08:45:00+05:30', subject: 'Improper waste dumping by vendor cluster', officer: 'SI Lakshmi Devi', fineAmount: 5000, fineStatus: 'unpaid', evidencePhotoAttached: true, evidenceNote: 'Photo of dumped waste beside drain, geo-tagged at time of inspection.' },
+  { id: 'enf-002', wardId: 'ward-16', type: 'sup_seizure', status: 'initiated', createdAt: '2026-08-16T07:30:00+05:30', updatedAt: '2026-08-16T08:00:00+05:30', subject: 'Unauthorized bulk waste transfer', officer: 'EO P. Venkatesh', evidencePhotoAttached: false, evidenceNote: 'Awaiting field photo upload from enforcement officer.' },
+  { id: 'enf-003', wardId: 'ward-16', vehicleId: 'veh-01', type: 'challan', status: 'closed', createdAt: '2026-08-10T09:15:00+05:30', updatedAt: '2026-08-12T11:00:00+05:30', subject: 'Single-use plastic (SUP) sale at market stall', officer: 'SI Lakshmi Devi', fineAmount: 1000, fineStatus: 'paid', evidencePhotoAttached: true, evidenceNote: 'Photo of seized SUP stock and challan receipt.' },
 ];
 
 export const reports: ReportRecord[] = [

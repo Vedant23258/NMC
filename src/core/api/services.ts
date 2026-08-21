@@ -103,6 +103,10 @@ const enforcementSchema = z.object({
   updatedAt: z.string(),
   subject: z.string(),
   officer: z.string(),
+  fineAmount: z.number().optional(),
+  fineStatus: z.enum(['unpaid', 'paid', 'waived']).optional(),
+  evidencePhotoAttached: z.boolean(),
+  evidenceNote: z.string().optional(),
 });
 
 const wardSchema = z.object({

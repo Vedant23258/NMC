@@ -72,7 +72,17 @@ export const ReportsPage = () => {
                 <span>MAUD auto-fill integration is not yet wired.</span>
               </div>
             ) : null}
-            {canApprove && report.name === 'MAUD Monthly Rollup' && !report.approvedAt ? (
+            {report.name === 'MAUD Monthly Rollup' ? (
+              <p className="muted">
+                {report.status === 'pending_backend'
+                  ? 'Not yet drafted by the MIS/GIS Analyst for this period.'
+                  : report.approvedAt
+                    ? `Awaiting Commissioner sign-off (approved by ${report.approvedBy}).`
+                    : 'Awaiting Additional Commissioner approval.'}
+              </p>
+            ) : null}
+
+            {canApprove && report.name === 'MAUD Monthly Rollup' && report.status === 'draft' && !report.approvedAt ? (
               <Button
                 variant="secondary"
                 onClick={() => approveMutation.mutate(report.id)}
@@ -81,7 +91,8 @@ export const ReportsPage = () => {
                 Approve &amp; Forward to Commissioner
               </Button>
             ) : null}
-            {canSignOff && report.signOffRequired ? (
+
+            {canSignOff && report.signOffRequired && !report.signedOffAt && (report.name !== 'MAUD Monthly Rollup' || Boolean(report.approvedAt)) ? (
               <Button
                 onClick={() => {
                   setSelectedId(report.id);

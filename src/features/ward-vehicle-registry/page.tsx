@@ -35,7 +35,7 @@ export const RegistryPage = () => {
     <>
       <PageHeader
         title="Ward and Vehicle Registry"
-        description="Registry views stay GIS-ready while not inventing unsupported ward boundary integrations."
+        description="Master data lookup: every ward NMC operates and every fleet vehicle assigned to it. Read-only reference — not where you take action, just where you check 'which ward is this, what's its status, which vehicle serves it.'"
       />
 
       <div className="registry-grid">
@@ -70,8 +70,14 @@ export const RegistryPage = () => {
         </Card>
       </div>
 
-      <Card title="Integration posture" description="Ready for future GIS and live route master integration without coupling to placeholder geometry.">
-        <p className="muted">Last vehicle master refresh visible in mock mode: {formatDateTime('2026-08-16T09:00:00+05:30')}</p>
+      <Card title="What's not here yet" description="Gaps against the full architecture — flagged rather than hidden.">
+        <p className="muted">
+          No worker roster (that lives on the Ward Sanitary Inspector's My Ward Today page, scoped
+          per ward). No street/beat-segment list at city level. Ward boundaries are placeholder
+          geometry except Ward 16 (see the Monitoring Wall map) — vehicle GPS positions aren't
+          live yet either, since the fleet data-feed access from the contractor is still pending.
+        </p>
+        <p className="muted">Last vehicle master refresh (mock mode): {formatDateTime('2026-08-16T09:00:00+05:30')}</p>
       </Card>
     </>
   );

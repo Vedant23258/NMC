@@ -10,11 +10,25 @@ import { PageHeader } from '@/shared/ui/page-header';
 import { DataTable, type ColumnDef } from '@/shared/tables/data-table';
 import { formatDateTime, titleCase } from '@/shared/utils/format';
 
+const formatFine = (item: EnforcementRecord) =>
+  item.fineAmount === undefined ? '—' : `₹${item.fineAmount.toLocaleString('en-IN')}`;
+
 const columns: ColumnDef<EnforcementRecord>[] = [
   { key: 'type', header: 'Type', render: (item) => titleCase(item.type) },
   { key: 'subject', header: 'Subject', render: (item) => item.subject },
   { key: 'ward', header: 'Ward', render: (item) => item.wardId.toUpperCase() },
   { key: 'status', header: 'Status', render: (item) => <Badge value={item.status} tone={item.status} /> },
+  {
+    key: 'fine',
+    header: 'Fine',
+    render: (item) => (
+      <>
+        {formatFine(item)}
+        {item.fineStatus ? <Badge value={item.fineStatus} tone={item.fineStatus === 'paid' ? 'active' : item.fineStatus === 'waived' ? 'pending' : 'unavailable'} /> : null}
+      </>
+    ),
+  },
+  { key: 'photo', header: 'Evidence', render: (item) => <Badge value={item.evidencePhotoAttached ? 'attached' : 'pending'} tone={item.evidencePhotoAttached ? 'active' : 'pending'} /> },
   { key: 'officer', header: 'Officer', render: (item) => item.officer },
 ];
 
@@ -71,6 +85,17 @@ export const EnforcementPage = () => {
               <dd>{titleCase(detailQuery.data.status)}</dd>
               <dt>Officer</dt>
               <dd>{detailQuery.data.officer}</dd>
+              <dt>Fine amount</dt>
+              <dd>
+                {formatFine(detailQuery.data)}
+                {detailQuery.data.fineStatus ? ` · ${titleCase(detailQuery.data.fineStatus)}` : ''}
+                {detailQuery.data.type !== 'challan' ? ' (not applicable to this action type)' : ''}
+              </dd>
+              <dt>Photo evidence</dt>
+              <dd>
+                {detailQuery.data.evidencePhotoAttached ? 'Attached' : 'Not yet attached'}
+                {detailQuery.data.evidenceNote ? ` — ${detailQuery.data.evidenceNote}` : ''}
+              </dd>
               <dt>Created</dt>
               <dd>{formatDateTime(detailQuery.data.createdAt)}</dd>
               <dt>Updated</dt>

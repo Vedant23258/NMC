@@ -160,6 +160,10 @@ export interface EnforcementRecord {
   updatedAt: string;
   subject: string;
   officer: string;
+  fineAmount?: number;
+  fineStatus?: 'unpaid' | 'paid' | 'waived';
+  evidencePhotoAttached: boolean;
+  evidenceNote?: string;
 }
 
 export interface ReportRecord {
